@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bot.ctming.com — Claude Code Bot</title>
+  <meta name="description" content="WhatsApp & Telegram Bot powered by Claude Code. Built by ctming.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0f;
+      --bg-card: #111119;
+      --border: #1e1e2e;
+      --text: #e2e2ef;
+      --text-dim: #6b6b80;
+      --accent-green: #00ffaa;
+      --accent-blue: #3b82f6;
+      --accent-purple: #a855f7;
+      --accent-orange: #f97316;
+      --glow-green: 0 0 40px rgba(0, 255, 170, 0.15);
+      --glow-blue: 0 0 40px rgba(59, 130, 246, 0.15);
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-mono);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ─── GRID BACKGROUND ─── */
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    /* ─── FLOATING ORBS ─── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 0;
+      animation: float 20s ease-in-out infinite;
+    }
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, var(--accent-green), transparent 70%);
+      top: -150px; right: -100px;
+      animation-delay: 0s;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, var(--accent-blue), transparent 70%);
+      bottom: -100px; left: -100px;
+      animation-delay: -7s;
+    }
+    .orb-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, var(--accent-purple), transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -14s;
+      opacity: 0.2;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(30px, -40px) scale(1.05); }
+      50% { transform: translate(-20px, 20px) scale(0.95); }
+      75% { transform: translate(10px, 30px) scale(1.02); }
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(20px) saturate(1.5);
+      background: rgba(10, 10, 15, 0.7);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--accent-green);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--text-dim); font-weight: 400; }
+
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--accent-green); }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--accent-green);
+    }
+    .nav-status .dot {
+      width: 6px; height: 6px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 255, 170, 0.4); }
+      50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(0, 255, 170, 0); }
+    }
+
+    /* ─── MAIN CONTENT ─── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 5rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      width: fit-content;
+      margin-bottom: 2rem;
+      background: rgba(255,255,255,0.02);
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+    .hero-badge .badge-dot {
+      width: 5px; height: 5px;
+      background: var(--accent-green);
+      border-radius: 50%;
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      max-width: 520px;
+      line-height: 1.8;
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+      animation: fadeInUp 0.8s ease-out 0.6s both;
+    }
+
+    /* ─── TERMINAL ─── */
+    .terminal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 2rem;
+      box-shadow: var(--glow-green);
+      animation: fadeInUp 0.8s ease-out 0.8s both;
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .terminal-dot.red { background: #ff5f57; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #28c840; }
+    .terminal-title {
+      margin-left: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+    .terminal-body {
+      padding: 1.25rem 1.5rem;
+      font-size: 0.85rem;
+      line-height: 1.9;
+      min-height: 180px;
+    }
+    .terminal-line { opacity: 0; animation: typeLine 0.4s ease-out forwards; }
+    .terminal-line:nth-child(1) { animation-delay: 1.2s; }
+    .terminal-line:nth-child(2) { animation-delay: 1.8s; }
+    .terminal-line:nth-child(3) { animation-delay: 2.4s; }
+    .terminal-line:nth-child(4) { animation-delay: 3.0s; }
+    .terminal-line:nth-child(5) { animation-delay: 3.6s; }
+    .terminal-line:nth-child(6) { animation-delay: 4.2s; }
+
+    .prompt { color: var(--accent-green); }
+    .cmd { color: var(--text); }
+    .flag { color: var(--accent-blue); }
+    .str { color: var(--accent-orange); }
+    .comment { color: var(--text-dim); font-style: italic; }
+    .success { color: var(--accent-green); }
+
+    @keyframes typeLine {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── SECTION STYLE ─── */
+    section { padding: 6rem 0; }
+
+    .section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-green);
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .section-desc {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      max-width: 500px;
+      line-height: 1.7;
+      margin-bottom: 3rem;
+      font-weight: 300;
+    }
+
+    /* ─── PLATFORM CARDS ─── */
+    .platforms {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .platform-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .platform-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+    .platform-card:hover {
+      border-color: transparent;
+      transform: translateY(-4px);
+    }
+    .platform-card:hover::before { opacity: 1; }
+
+    .platform-card.whatsapp::before {
+      background: linear-gradient(135deg, rgba(37, 211, 102, 0.08), transparent 60%);
+    }
+    .platform-card.whatsapp:hover { border-color: rgba(37, 211, 102, 0.3); }
+
+    .platform-card.telegram::before {
+      background: linear-gradient(135deg, rgba(0, 136, 204, 0.08), transparent 60%);
+    }
+    .platform-card.telegram:hover { border-color: rgba(0, 136, 204, 0.3); }
+
+    .platform-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      font-size: 1.5rem;
+    }
+    .whatsapp .platform-icon {
+      background: rgba(37, 211, 102, 0.1);
+      border: 1px solid rgba(37, 211, 102, 0.2);
+    }
+    .telegram .platform-icon {
+      background: rgba(0, 136, 204, 0.1);
+      border: 1px solid rgba(0, 136, 204, 0.2);
+    }
+
+    .platform-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .platform-card p {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    .platform-tag {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 100px;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .whatsapp .platform-tag {
+      background: rgba(37, 211, 102, 0.1);
+      color: #25d366;
+      border: 1px solid rgba(37, 211, 102, 0.2);
+    }
+    .telegram .platform-tag {
+      background: rgba(0, 136, 204, 0.1);
+      color: #0088cc;
+      border: 1px solid rgba(0, 136, 204, 0.2);
+    }
+
+    /* ─── FEATURES ─── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      transition: all 0.3s;
+    }
+    .feature-card:hover {
+      border-color: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .feature-card h4 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .feature-card p {
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    /* ─── TECH STACK ─── */
+    .stack-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .stack-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      transition: all 0.3s;
+    }
+    .stack-chip:hover {
+      border-color: var(--accent-green);
+      color: var(--text);
+    }
+    .stack-chip .chip-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .footer-brand {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+    }
+    .footer-text {
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      line-height: 1.8;
+    }
+    .footer-text a {
+      color: var(--accent-green);
+      text-decoration: none;
+    }
+    .footer-text a:hover { text-decoration: underline; }
+
+    .footer-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--border);
+      margin: 0.5rem 0;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1023px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 639px) {
+      nav { padding: 1rem 1.25rem; }
+      .nav-links { display: none; }
+      main { padding: 0 1.25rem; }
+      .hero h1 { font-size: 2.2rem; }
+      .hero-sub { font-size: 0.9rem; }
+      .platforms { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .terminal-body { padding: 1rem; font-size: 0.75rem; }
+      section { padding: 4rem 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background effects -->
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Nav -->
+  <nav>
+    <a href="#" class="nav-logo">bot<span>.ctming.com</span></a>
+    <div class="nav-links">
+      <a href="#platforms">Platforms</a>
+      <a href="#features">Features</a>
+      <a href="#stack">Stack</a>
+    </div>
+    <div class="nav-status">
+      <div class="dot"></div>
+      <span>Systems Online</span>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-badge">
+        <div class="badge-dot"></div>
+        Personal Project by ctming
+      </div>
+
+      <h1>
+        <span class="gradient-text">Claude Code</span><br>
+        Bot Interface
+      </h1>
+
+      <p class="hero-sub">
+        WhatsApp &amp; Telegram bot powered by Claude Code.
+        Built for instant AI-assisted coding conversations
+        from any messaging platform.
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+          <span class="terminal-title">bot.ctming.com — session</span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-line"><span class="prompt">$</span> <span class="cmd">claude</span> <span class="flag">--bot</span> <span class="str">"start session"</span></div>
+          <div class="terminal-line"><span class="comment"># Connecting to messaging platforms...</span></div>
+          <div class="terminal-line"><span class="success">&#10003;</span> WhatsApp bridge <span class="success">connected</span></div>
+          <div class="terminal-line"><span class="success">&#10003;</span> Telegram bridge <span class="success">connected</span></div>
+          <div class="terminal-line"><span class="comment"># Claude Code engine ready</span></div>
+          <div class="terminal-line"><span class="prompt">&gt;</span> <span class="cmd">Awaiting messages...</span> <span class="cursor">|</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Platforms -->
+    <section id="platforms" class="reveal">
+      <div class="section-label">// Platforms</div>
+      <h2 class="section-title">Two channels,<br>one brain.</h2>
+      <p class="section-desc">
+        Chat with Claude Code through your favourite messaging app.
+        Same powerful AI, familiar interface.
+      </p>
+
+      <div class="platforms">
+        <div class="platform-card whatsapp">
+          <div class="platform-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          </div>
+          <h3>WhatsApp</h3>
+          <p>Send a message, get Claude Code responses in real-time. Supports text, code snippets, and file analysis.</p>
+          <span class="platform-tag">Active</span>
+        </div>
+
+        <div class="platform-card telegram">
+          <div class="platform-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#0088cc"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          </div>
+          <h3>Telegram</h3>
+          <p>Full-featured bot with inline commands, markdown rendering, and conversation threading.</p>
+          <span class="platform-tag">Active</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="reveal">
+      <div class="section-label">// Capabilities</div>
+      <h2 class="section-title">What it does.</h2>
+      <p class="section-desc">
+        Bridging Claude Code's power to your chat apps.
+      </p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F4AC;</div>
+          <h4>Natural Chat</h4>
+          <p>Converse naturally. Ask coding questions, get structured responses.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F4BB;</div>
+          <h4>Code Generation</h4>
+          <p>Generate, review, and debug code right from your messaging app.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x26A1;</div>
+          <h4>Fast Responses</h4>
+          <p>Powered by Claude's latest models for instant, high-quality answers.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F510;</div>
+          <h4>Private</h4>
+          <p>Self-hosted. Your conversations stay on your own infrastructure.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F504;</div>
+          <h4>Context Aware</h4>
+          <p>Maintains conversation context across messages within a session.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#x1F6E0;</div>
+          <h4>Extensible</h4>
+          <p>Built to be extended with custom commands, tools, and integrations.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stack -->
+    <section id="stack" class="reveal">
+      <div class="section-label">// Under the Hood</div>
+      <h2 class="section-title">Built with.</h2>
+      <p class="section-desc">
+        A lean stack. Nothing more than needed.
+      </p>
+
+      <div class="stack-row">
+        <div class="stack-chip"><div class="chip-dot" style="background:#a855f7"></div>Claude Code</div>
+        <div class="stack-chip"><div class="chip-dot" style="background:#25d366"></div>WhatsApp API</div>
+        <div class="stack-chip"><div class="chip-dot" style="background:#0088cc"></div>Telegram Bot API</div>
+        <div class="stack-chip"><div class="chip-dot" style="background:#f97316"></div>Node.js</div>
+        <div class="stack-chip"><div class="chip-dot" style="background:#3b82f6"></div>Docker</div>
+        <div class="stack-chip"><div class="chip-dot" style="background:#00ffaa"></div>Self-hosted</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">bot.ctming.com</div>
+      <div class="footer-divider"></div>
+      <div class="footer-text">
+        Developed by <a href="https://ctming.com" target="_blank" rel="noopener">ctming</a><br>
+        WhatsApp &amp; Telegram Bot for Claude Code
+      </div>
+      <div class="footer-text" style="font-size: 0.65rem; margin-top: 0.5rem;">
+        &copy; 2026 ctming. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scroll reveal -->
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.15 });
+    reveals.forEach(el => observer.observe(el));
+
+    // Blinking cursor
+    const cursor = document.querySelector('.cursor');
+    if (cursor) {
+      setInterval(() => {
+        cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0';
+      }, 530);
+    }
+  </script>
+
+</body>
+</html>
