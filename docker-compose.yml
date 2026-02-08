@@ -1,0 +1,18 @@
+services:
+  nginx:
+    build:
+      context: ./docker
+      dockerfile: nginx/Dockerfile
+    container_name: bot-nginx
+    restart: unless-stopped
+    environment:
+      - VIRTUAL_HOST=bot.ctming.com
+      - ENABLE_ACME=true
+    volumes:
+      - ./index.html:/var/www/html/index.html:ro
+    networks:
+      - letsproxy
+
+networks:
+  letsproxy:
+    external: true
